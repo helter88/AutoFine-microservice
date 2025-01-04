@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9991:9991"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_JMX_PORT: 9991
+      KAFKA_JMX_HOSTNAME: localhost
+
+  db_fotoradar:
+    image: postgres:16-alpine
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: user_fotoradar
+      POSTGRES_PASSWORD: password_fotoradar
+      POSTGRES_DB: fotoradar_db
+    volumes:
+      - fotoradar_db_data:/var/lib/postgresql/data/
+
+  db_mandate:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: user_mandate
+      POSTGRES_PASSWORD: password_mandate
+      POSTGRES_DB: mandate_db
+    volumes:
+      - mandate_db_data:/var/lib/postgresql/data/
+
+  db_driving_license:
+    image: postgres:16-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: user_driving_license
+      POSTGRES_PASSWORD: password_driving_license
+      POSTGRES_DB: driving_license_db
+    volumes:
+      - driving_license_db_data:/var/lib/postgresql/data/
+
+  db_notification:
+    image: postgres:16-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: user_notification
+      POSTGRES_PASSWORD: password_notification
+      POSTGRES_DB: notification_db
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data/
+
+  fotoradar-data-service:
+    build: ./fotoradar-data-service
+    depends_on:
+      - kafka
+      - db_fotoradar
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db_fotoradar:5432/fotoradar_db
+      SPRING_DATASOURCE_USERNAME: user_fotoradar
+      SPRING_DATASOURCE_PASSWORD: password_fotoradar
+
+  mandate-service:
+    build: ./mandate-service
+    depends_on:
+      - kafka
+      - db_mandate
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db_mandate:5432/mandate_db
+      SPRING_DATASOURCE_USERNAME: user_mandate
+      SPRING_DATASOURCE_PASSWORD: password_mandate
+
+  driving-license-service:
+    build: ./driving-license-service
+    depends_on:
+      - kafka
+      - db_driving_license
+    ports:
+      - "8083:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db_driving_license:5432/driving_license_db
+      SPRING_DATASOURCE_USERNAME: user_driving_license
+      SPRING_DATASOURCE_PASSWORD: password_driving_license
+
+  notification-service:
+    build: ./notification-service
+    depends_on:
+      - kafka
+      - db_notification
+    ports:
+      - "8084:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db_notification:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: user_notification
+      SPRING_DATASOURCE_PASSWORD: password_notification
+
+volumes:
+  fotoradar_db_data:
+  mandate_db_data:
+  driving_license_db_data:
+  notification_db_data:
