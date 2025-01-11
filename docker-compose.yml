@@ -71,61 +71,61 @@ services:
     volumes:
       - notification_db_data:/var/lib/postgresql/data/
 
-  fotoradar-data-service:
-    build: ./fotoradar-data-service
-    depends_on:
-      - kafka
-      - db_fotoradar
-    ports:
-      - "8081:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db_fotoradar:5432/fotoradar_db
-      SPRING_DATASOURCE_USERNAME: user_fotoradar
-      SPRING_DATASOURCE_PASSWORD: password_fotoradar
+#  fotoradar-data-service:
+#    build: ./fotoradar-data-service
+#    depends_on:
+#      - kafka
+#      - db_fotoradar
+#    ports:
+#      - "8081:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db_fotoradar:5432/fotoradar_db
+#      SPRING_DATASOURCE_USERNAME: user_fotoradar
+#      SPRING_DATASOURCE_PASSWORD: password_fotoradar
 
-  mandate-service:
-    build: ./mandate-service
-    depends_on:
-      - kafka
-      - db_mandate
-    ports:
-      - "8082:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db_mandate:5432/mandate_db
-      SPRING_DATASOURCE_USERNAME: user_mandate
-      SPRING_DATASOURCE_PASSWORD: password_mandate
+#  mandate-service:
+#    build: ./mandate-service
+#    depends_on:
+#      - kafka
+#      - db_mandate
+#    ports:
+#      - "8082:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db_mandate:5432/mandate_db
+#      SPRING_DATASOURCE_USERNAME: user_mandate
+#      SPRING_DATASOURCE_PASSWORD: password_mandate
 
-  driving-license-service:
-    build: ./driving-license-service
-    depends_on:
-      - kafka
-      - db_driving_license
-    ports:
-      - "8083:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db_driving_license:5432/driving_license_db
-      SPRING_DATASOURCE_USERNAME: user_driving_license
-      SPRING_DATASOURCE_PASSWORD: password_driving_license
+#  driving-license-service:
+#    build: ./driving-license-service
+#    depends_on:
+#      - kafka
+#      - db_driving_license
+#    ports:
+#      - "8083:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db_driving_license:5432/driving_license_db
+#      SPRING_DATASOURCE_USERNAME: user_driving_license
+#      SPRING_DATASOURCE_PASSWORD: password_driving_license
 
-  notification-service:
-    build: ./notification-service
-    depends_on:
-      - kafka
-      - db_notification
-    ports:
-      - "8084:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db_notification:5432/notification_db
-      SPRING_DATASOURCE_USERNAME: user_notification
-      SPRING_DATASOURCE_PASSWORD: password_notification
+#  notification-service:
+#    build: ./notification-service
+#    depends_on:
+#      - kafka
+#      - db_notification
+#    ports:
+#      - "8084:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9093
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db_notification:5432/notification_db
+#      SPRING_DATASOURCE_USERNAME: user_notification
+#      SPRING_DATASOURCE_PASSWORD: password_notification
 
 volumes:
   fotoradar_db_data:

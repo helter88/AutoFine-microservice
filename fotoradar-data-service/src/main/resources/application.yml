@@ -1,3 +1,24 @@
 spring:
   application:
     name: fotoradar-data-service
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: fotoradar-data-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+
+  datasource:
+    url: jdbc:postgresql://localhost:5436/fotoradar_db
+    username: user_fotoradar
+    password: password_fotoradar
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
