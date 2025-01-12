@@ -10,6 +10,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: '*'
+        max.poll.records: 50
 
   datasource:
     url: jdbc:postgresql://localhost:5436/fotoradar_db

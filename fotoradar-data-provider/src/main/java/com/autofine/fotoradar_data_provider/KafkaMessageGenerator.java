@@ -16,9 +16,9 @@ import java.util.UUID;
 public class KafkaMessageGenerator implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(KafkaMessageGenerator.class);
 
-    private final KafkaTemplate<String, FotoradarData> kafkaTemplate;
+    private final KafkaTemplate<String, FotoradarDataProvidedDto> kafkaTemplate;
 
-    public KafkaMessageGenerator(KafkaTemplate<String, FotoradarData> kafkaTemplate) {
+    public KafkaMessageGenerator(KafkaTemplate<String, FotoradarDataProvidedDto> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -38,7 +38,7 @@ public class KafkaMessageGenerator implements CommandLineRunner {
             String imageUrl = "http://example.com/image/" + UUID.randomUUID() + ".jpg";
             int speedLimit = possibleSpeedLimits.get(random.nextInt(possibleSpeedLimits.size()));
 
-            FotoradarData data = new FotoradarData(radarId, eventTimestamp, vehicleSpeed, licensePlate, imageUrl, speedLimit);
+            FotoradarDataProvidedDto data = new FotoradarDataProvidedDto(radarId, eventTimestamp, vehicleSpeed, licensePlate, imageUrl, speedLimit);
 
             kafkaTemplate.send(topic, data);
             logger.info("Wysłano wiadomość do tematu {}: {}", topic, data);

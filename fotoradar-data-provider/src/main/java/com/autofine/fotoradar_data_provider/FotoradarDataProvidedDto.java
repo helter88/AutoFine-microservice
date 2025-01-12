@@ -2,7 +2,7 @@ package com.autofine.fotoradar_data_provider;
 
 import java.time.LocalDateTime;
 
-public record FotoradarData(
+public record FotoradarDataProvidedDto(
         String radarId,
 
         LocalDateTime eventTimestamp,

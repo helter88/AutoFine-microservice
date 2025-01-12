@@ -1,4 +1,4 @@
-package om.autofine.fotoradar_data_service;
+package com.autofine.fotoradar_data_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
