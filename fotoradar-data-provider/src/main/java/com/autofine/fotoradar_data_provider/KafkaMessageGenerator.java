@@ -1,5 +1,7 @@
 package com.autofine.fotoradar_data_provider;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -16,9 +18,9 @@ import java.util.UUID;
 public class KafkaMessageGenerator implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(KafkaMessageGenerator.class);
 
-    private final KafkaTemplate<String, FotoradarDataProvidedDto> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public KafkaMessageGenerator(KafkaTemplate<String, FotoradarDataProvidedDto> kafkaTemplate) {
+    public KafkaMessageGenerator(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -39,9 +41,11 @@ public class KafkaMessageGenerator implements CommandLineRunner {
             int speedLimit = possibleSpeedLimits.get(random.nextInt(possibleSpeedLimits.size()));
 
             FotoradarDataProvidedDto data = new FotoradarDataProvidedDto(radarId, eventTimestamp, vehicleSpeed, licensePlate, imageUrl, speedLimit);
-
-            kafkaTemplate.send(topic, data);
-            logger.info("Wysłano wiadomość do tematu {}: {}", topic, data);
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+            String jsonData = objectMapper.writeValueAsString(data);
+            kafkaTemplate.send(topic, jsonData);
+            logger.info("Wysłano wiadomość do tematu {}: {}", topic, jsonData);
 
         }
 

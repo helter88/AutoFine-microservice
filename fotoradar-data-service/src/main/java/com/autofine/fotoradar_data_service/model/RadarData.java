@@ -13,7 +13,6 @@ import java.util.UUID;
 
 @Entity
 public class RadarData {
-
     @Id
     private UUID id = UUID.randomUUID();
     private String radarExternalId;
@@ -26,6 +25,8 @@ public class RadarData {
     @Column(updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
+
+    public RadarData(){}
 
     public RadarData(String radarExternalId, LocalDateTime eventTimestamp, Integer speedLimit, Integer vehicleSpeed, String licensePlate, String imageUrl) {
         this.radarExternalId = radarExternalId;

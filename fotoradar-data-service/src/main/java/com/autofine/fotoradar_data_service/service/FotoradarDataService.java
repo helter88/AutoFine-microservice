@@ -4,6 +4,11 @@ import com.autofine.fotoradar_data_service.model.RadarData;
 import com.autofine.fotoradar_data_service.dto.FotoradarDataProvidedDto;
 import com.autofine.fotoradar_data_service.dto.FotoradarDataReceivedDto;
 import com.autofine.fotoradar_data_service.repository.RadarDataRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -12,12 +17,12 @@ import java.util.List;
 
 @Service
 public class FotoradarDataService {
-
+    private static final Logger logger = LoggerFactory.getLogger(FotoradarDataService.class);
     private final RadarDataRepository radarDataRepository;
-    private final KafkaTemplate<String, FotoradarDataReceivedDto> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private static final String TOPIC_RECEIVED = "fotoradar.data.received";
 
-    public FotoradarDataService(RadarDataRepository radarDataRepository, KafkaTemplate<String, FotoradarDataReceivedDto> kafkaTemplate) {
+    public FotoradarDataService(RadarDataRepository radarDataRepository, KafkaTemplate<String, String> kafkaTemplate) {
         this.radarDataRepository = radarDataRepository;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -25,6 +30,7 @@ public class FotoradarDataService {
 
     @KafkaListener(topics = "fotoradar.data.provided", groupId = "fotoradar-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveFotoradarDataBatch(List<FotoradarDataProvidedDto> messages) {
+        logger.info("Received a batch of {} messages", messages.size());
         List<RadarData> validatedData = messages.stream()
                 .map(this::processFotoradarData)
                 .filter(java.util.Objects::nonNull)
@@ -42,7 +48,16 @@ public class FotoradarDataService {
                         data.getLicensePlate(),
                         data.getImageUrl()
                 );
-                kafkaTemplate.send(TOPIC_RECEIVED, receivedDto);
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule());
+                try {
+                    String jsonData = objectMapper.writeValueAsString(receivedDto);
+                    kafkaTemplate.send(TOPIC_RECEIVED, jsonData);
+                    logger.info("Wysłano wiadomość do tematu {}: {}", TOPIC_RECEIVED, jsonData);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
             });
         }
     }
