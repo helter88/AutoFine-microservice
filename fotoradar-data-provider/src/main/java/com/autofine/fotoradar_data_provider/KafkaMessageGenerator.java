@@ -24,15 +24,17 @@ public class KafkaMessageGenerator implements CommandLineRunner {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    // wiem że to tylko prosty provider danych, ale... warto dzielić metody na mniejsze :P (SRP)
     @Override
     public void run(String... args) throws Exception {
         String topic = "fotoradar.data.provided";
-        int numberOfMessages = 100; // Zdefiniuj liczbę wiadomości do wysłania
+        int numberOfMessages = 100; // Zdefiniuj liczbę wiadomości do wysłania // TODO dawaj więcej, niech się trochę procesor zmęczy :P (i żebyśmy zobaczyli efekty zrównoleglenia) + produkcję też możesz zrównoleglić
 
         Random random = new Random();
         List<Integer> possibleSpeedLimits = Arrays.asList(40, 50, 70, 90, 120);
 
         for (int i = 0; i < numberOfMessages; i++) {
+            // new Thread
             String radarId = "RADAR_" + random.nextInt(10);
             LocalDateTime eventTimestamp = LocalDateTime.now().minusMinutes(random.nextInt(60)); // Losowe zdarzenie w ciągu ostatniej godziny
             int vehicleSpeed = 50 + random.nextInt(150); // Prędkość między 50 a 200 km/h

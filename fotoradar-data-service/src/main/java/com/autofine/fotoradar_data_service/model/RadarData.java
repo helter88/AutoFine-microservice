@@ -17,6 +17,7 @@ public class RadarData {
     private UUID id = UUID.randomUUID();
     private String radarExternalId;
     private LocalDateTime eventTimestamp;
+    // TODO dlaczego nie typy prymitywne? przewidujemy tu nulle?
     private Integer speedLimit;
     private Integer vehicleSpeed;
     private String licensePlate;
@@ -30,7 +31,7 @@ public class RadarData {
 
     public RadarData(String radarExternalId, LocalDateTime eventTimestamp, Integer speedLimit, Integer vehicleSpeed, String licensePlate, String imageUrl) {
         this.radarExternalId = radarExternalId;
-        this.eventTimestamp = eventTimestamp;
+        this.eventTimestamp = eventTimestamp; // jeśli zakładamy że wszystko w jednej strefie czasowej, to ok, jeśli nie, to warto przeliczyć (znormalizować); btw uwaga na przestawianie zegarów ;) zawsze zadawajmy sobie pytanie: "co może pójść nie tak?"
         this.speedLimit = speedLimit;
         this.vehicleSpeed = vehicleSpeed;
         this.licensePlate = licensePlate;

@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 public record FotoradarDataProvidedDto(
         String radarId,
 
-        LocalDateTime eventTimestamp,
+        LocalDateTime eventTimestamp, // jeśli zakładamy, że dane spływają z jednej i tej samej strefy czasowej, to ok (1. są kraje mające wiele stref, 2. mogłyby przyjść dane z innego państwa) - chcesz przećwiczyć strefy?
 
-        int vehicleSpeed,
+        Unit speedUnit,
+
+        int vehicleSpeed, // nie mieliśmy tu dawać jeszcze jednostki prędkości?
 
         String licensePlate,
 
@@ -15,4 +17,9 @@ public record FotoradarDataProvidedDto(
 
         int speedLimit
 ) {
+
+  enum Unit {
+    KMH,
+    MPH
+  }
 }

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +28,11 @@ public class FotoradarDataService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-
+    // TODO bardziej dziel na podmetody
     @KafkaListener(topics = "fotoradar.data.provided", groupId = "fotoradar-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveFotoradarDataBatch(List<FotoradarDataProvidedDto> messages) {
         logger.info("Received a batch of {} messages", messages.size());
+        // TODO zrównoleglajmy :)
         List<RadarData> validatedData = messages.stream()
                 .map(this::processFotoradarData)
                 .filter(java.util.Objects::nonNull)
@@ -65,9 +67,11 @@ public class FotoradarDataService {
     private RadarData processFotoradarData(FotoradarDataProvidedDto providedDto) {
         try {
 
+            // TODO rzuć okiem na jakarta validation
             if (providedDto.radarId() == null || providedDto.radarId().isEmpty() ||
                     providedDto.eventTimestamp() == null ||
                     providedDto.licensePlate() == null || providedDto.licensePlate().isEmpty()) {
+                // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację) / slf4j
                 return null;
             }
 
@@ -81,6 +85,7 @@ public class FotoradarDataService {
             );
 
         } catch (Exception e) {
+            // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację) / slf4j
             return null;
         }
     }
