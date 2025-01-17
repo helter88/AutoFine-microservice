@@ -32,6 +32,13 @@ public class FotoradarDataService {
     @KafkaListener(topics = "fotoradar.data.provided", groupId = "fotoradar-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveFotoradarDataBatch(List<FotoradarDataProvidedDto> messages) {
         logger.info("Received a batch of {} messages", messages.size());
+
+
+        messages.parallelStream().forEach(message -> {
+            process(message);
+        });
+
+
         // TODO zrównoleglajmy :)
         List<RadarData> validatedData = messages.stream()
                 .map(this::processFotoradarData)
@@ -62,6 +69,13 @@ public class FotoradarDataService {
 
             });
         }
+    }
+
+    @Async("fotoradarDataExecutor")
+    public void process(FotoradarDataProvidedDto message) {
+        // przemapowanie
+        // zapis do bazy
+        // send
     }
 
     private RadarData processFotoradarData(FotoradarDataProvidedDto providedDto) {
