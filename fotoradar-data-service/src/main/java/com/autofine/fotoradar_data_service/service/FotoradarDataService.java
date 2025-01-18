@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,39 +27,20 @@ public class FotoradarDataService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    // TODO bardziej dziel na podmetody
+
     @KafkaListener(topics = "fotoradar.data.provided", groupId = "fotoradar-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveFotoradarDataBatch(List<FotoradarDataProvidedDto> messages) {
         logger.info("Received a batch of {} messages", messages.size());
-
-
-        messages.parallelStream().forEach(message -> {
-            process(message);
-        });
-
-
-        // TODO zrównoleglajmy :)
-        List<RadarData> validatedData = messages.stream()
-                .map(this::processFotoradarData)
-                .filter(java.util.Objects::nonNull)
-                .toList();
+        List<RadarData> validatedData = processMessages(messages);
 
         if (!validatedData.isEmpty()) {
             radarDataRepository.saveAll(validatedData);
 
             validatedData.forEach(data -> {
-                FotoradarDataReceivedDto receivedDto = new FotoradarDataReceivedDto(
-                        data.getRadarExternalId(),
-                        data.getEventTimestamp(),
-                        data.getSpeedLimit(),
-                        data.getVehicleSpeed(),
-                        data.getLicensePlate(),
-                        data.getImageUrl()
-                );
-                ObjectMapper objectMapper = new ObjectMapper();
-                objectMapper.registerModule(new JavaTimeModule());
+                FotoradarDataReceivedDto receivedDto = mapRadarDataToFotoradarDataReceivedDto(data);
+
                 try {
-                    String jsonData = objectMapper.writeValueAsString(receivedDto);
+                    String jsonData = serializeFotoradarDataReceivedDtoToJSON(receivedDto);
                     kafkaTemplate.send(TOPIC_RECEIVED, jsonData);
                     logger.info("Wysłano wiadomość do tematu {}: {}", TOPIC_RECEIVED, jsonData);
                 } catch (JsonProcessingException e) {
@@ -71,36 +51,62 @@ public class FotoradarDataService {
         }
     }
 
-    @Async("fotoradarDataExecutor")
-    public void process(FotoradarDataProvidedDto message) {
-        // przemapowanie
-        // zapis do bazy
-        // send
-    }
-
     private RadarData processFotoradarData(FotoradarDataProvidedDto providedDto) {
         try {
 
-            // TODO rzuć okiem na jakarta validation
-            if (providedDto.radarId() == null || providedDto.radarId().isEmpty() ||
-                    providedDto.eventTimestamp() == null ||
-                    providedDto.licensePlate() == null || providedDto.licensePlate().isEmpty()) {
-                // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację) / slf4j
+            if (checkIfDtoContainsNullValues(providedDto)) {
                 return null;
             }
-
+            int vehicleSpeedKMH = calculateSpeedKMH(providedDto.vehicleSpeed() , providedDto.speedUnit());
             return new RadarData(
                     providedDto.radarId(),
                     providedDto.eventTimestamp(),
                     providedDto.speedLimit(),
-                    providedDto.vehicleSpeed(),
+                    vehicleSpeedKMH,
                     providedDto.licensePlate(),
                     providedDto.imageUrl()
             );
 
         } catch (Exception e) {
-            // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację) / slf4j
             return null;
         }
+    }
+
+    private List<RadarData> processMessages(List<FotoradarDataProvidedDto> messages){
+        return messages.stream()
+                .map(this::processFotoradarData)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    private FotoradarDataReceivedDto mapRadarDataToFotoradarDataReceivedDto(RadarData radarData){
+        return new FotoradarDataReceivedDto(
+                radarData.getRadarExternalId(),
+                radarData.getEventTimestamp(),
+                radarData.getSpeedLimit(),
+                radarData.getVehicleSpeed(),
+                radarData.getLicensePlate(),
+                radarData.getImageUrl()
+        );
+    }
+
+    private String serializeFotoradarDataReceivedDtoToJSON(FotoradarDataReceivedDto receivedDto) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper.writeValueAsString(receivedDto);
+    }
+
+    private int calculateSpeedKMH(int speed , String speedUnit){
+        return speedUnit.equalsIgnoreCase("KMH")  ? speed : changeMPSToKMH(speed);
+    }
+
+    private int changeMPSToKMH(int speedMPS){
+         return speedMPS * 36 / 10;
+    }
+
+    private boolean checkIfDtoContainsNullValues (FotoradarDataProvidedDto providedDto){
+        return providedDto.radarId() == null || providedDto.radarId().isEmpty() ||
+                providedDto.eventTimestamp() == null ||
+                providedDto.licensePlate() == null || providedDto.licensePlate().isEmpty();
     }
 }
