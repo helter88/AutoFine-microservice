@@ -1,5 +1,6 @@
 package com.autofine.fotoradar_data_provider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
@@ -24,28 +25,17 @@ public class KafkaMessageGenerator implements CommandLineRunner {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    // wiem że to tylko prosty provider danych, ale... warto dzielić metody na mniejsze :P (SRP)
     @Override
     public void run(String... args) throws Exception {
         String topic = "fotoradar.data.provided";
         int numberOfMessages = 100; // Zdefiniuj liczbę wiadomości do wysłania // TODO dawaj więcej, niech się trochę procesor zmęczy :P (i żebyśmy zobaczyli efekty zrównoleglenia) + produkcję też możesz zrównoleglić
 
-        Random random = new Random();
         List<Integer> possibleSpeedLimits = Arrays.asList(40, 50, 70, 90, 120);
 
         for (int i = 0; i < numberOfMessages; i++) {
             // new Thread
-            String radarId = "RADAR_" + random.nextInt(10);
-            LocalDateTime eventTimestamp = LocalDateTime.now().minusMinutes(random.nextInt(60)); // Losowe zdarzenie w ciągu ostatniej godziny
-            int vehicleSpeed = 50 + random.nextInt(150); // Prędkość między 50 a 200 km/h
-            String licensePlate = generateRandomLicensePlate();
-            String imageUrl = "http://example.com/image/" + UUID.randomUUID() + ".jpg";
-            int speedLimit = possibleSpeedLimits.get(random.nextInt(possibleSpeedLimits.size()));
-
-            FotoradarDataProvidedDto data = new FotoradarDataProvidedDto(radarId, eventTimestamp, vehicleSpeed, licensePlate, imageUrl, speedLimit);
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-            String jsonData = objectMapper.writeValueAsString(data);
+            FotoradarDataProvidedDto data = generateFotoradarDataProviderDto(possibleSpeedLimits);
+            String jsonData = serializeDtoData(data);
             kafkaTemplate.send(topic, jsonData);
             logger.info("Wysłano wiadomość do tematu {}: {}", topic, jsonData);
 
@@ -64,5 +54,34 @@ public class KafkaMessageGenerator implements CommandLineRunner {
             sb.append(random.nextInt(10));
         }
         return sb.toString();
+    }
+
+    private int generatePossibleSpeedLimit(List<Integer> possibleSpeedLimits, Random random) {
+        return possibleSpeedLimits.get(random.nextInt(possibleSpeedLimits.size()));
+    }
+
+    private FotoradarDataProvidedDto generateFotoradarDataProviderDto(List<Integer> possibleSpeedLimits) {
+        Random random = new Random();
+        String radarId = "RADAR_" + random.nextInt(10);
+        LocalDateTime eventTimestamp = LocalDateTime.now().minusMinutes(random.nextInt(60)); // Losowe zdarzenie w ciągu ostatniej godziny
+        int vehicleSpeed = 50 + random.nextInt(150); // Prędkość między 50 a 200 km/h
+        String licensePlate = generateRandomLicensePlate();
+        String imageUrl = "http://example.com/image/" + UUID.randomUUID() + ".jpg";
+        int speedLimit = generatePossibleSpeedLimit(possibleSpeedLimits, random);
+        Unit unit = getRandomUnit(random);
+
+        return  new FotoradarDataProvidedDto(radarId, eventTimestamp, vehicleSpeed, licensePlate, imageUrl, speedLimit, unit);
+    }
+
+    private Unit getRandomUnit(Random random) {
+        Unit[] units = Unit.values();
+        int randomIndex = random.nextInt(units.length);
+        return units[randomIndex];
+    }
+
+    private String serializeDtoData(FotoradarDataProvidedDto data) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper.writeValueAsString(data);
     }
 }
