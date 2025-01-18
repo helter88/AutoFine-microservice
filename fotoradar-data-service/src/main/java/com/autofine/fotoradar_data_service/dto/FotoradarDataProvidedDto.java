@@ -7,19 +7,13 @@ public record FotoradarDataProvidedDto(
 
         LocalDateTime eventTimestamp,
 
-        String speedUnit,
-
         int vehicleSpeed,
 
         String licensePlate,
 
         String imageUrl,
 
-        int speedLimit
+        int speedLimit,
+        String speedUnit
 ) {
-
-  enum Unit {
-    KMH,
-    MPH
-  }
 }

@@ -55,6 +55,9 @@ public class FotoradarDataService {
         try {
 
             if (checkIfDtoContainsNullValues(providedDto)) {
+                // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację nie wysyłaj info o licensePlate) / slf4j
+                logger.warn("Provided DTO contains null or invalid values: radarId={}, eventTimestamp={}, licensePlate=ANONYMIZED",
+                        providedDto.radarId(), providedDto.eventTimestamp());
                 return null;
             }
             int vehicleSpeedKMH = calculateSpeedKMH(providedDto.vehicleSpeed() , providedDto.speedUnit());
@@ -68,6 +71,9 @@ public class FotoradarDataService {
             );
 
         } catch (Exception e) {
+            // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację nie wysyłaj info o licensePlate ) / slf4j
+            logger.error("An error occurred while processing radar data: radarId={}, eventTimestamp={}, licensePlate=ANONYMIZED. Exception type: {}",
+                    providedDto.radarId(), providedDto.eventTimestamp(), e.getClass().getName());
             return null;
         }
     }
