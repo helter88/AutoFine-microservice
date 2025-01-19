@@ -14,6 +14,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class KafkaMessageGenerator implements CommandLineRunner {
@@ -28,17 +31,37 @@ public class KafkaMessageGenerator implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         String topic = "fotoradar.data.provided";
-        int numberOfMessages = 100; // Zdefiniuj liczbę wiadomości do wysłania // TODO dawaj więcej, niech się trochę procesor zmęczy :P (i żebyśmy zobaczyli efekty zrównoleglenia) + produkcję też możesz zrównoleglić
+        int numberOfMessages = 1000; // Zdefiniuj liczbę wiadomości do wysłania // TODO dawaj więcej, niech się trochę procesor zmęczy :P (i żebyśmy zobaczyli efekty zrównoleglenia) + produkcję też możesz zrównoleglić
+        int numberOfThreads = 10;
 
         List<Integer> possibleSpeedLimits = Arrays.asList(40, 50, 70, 90, 120);
 
-        for (int i = 0; i < numberOfMessages; i++) {
-            // new Thread
-            FotoradarDataProvidedDto data = generateFotoradarDataProviderDto(possibleSpeedLimits);
-            String jsonData = serializeDtoData(data);
-            kafkaTemplate.send(topic, jsonData);
-            logger.info("Wysłano wiadomość do tematu {}: {}", topic, jsonData);
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
 
+        for (int i = 0; i < numberOfMessages; i++) {
+            executorService.submit(() -> {
+                FotoradarDataProvidedDto data = generateFotoradarDataProviderDto(possibleSpeedLimits);
+                String jsonData = null;
+                try {
+                    jsonData = serializeDtoData(data);
+                    kafkaTemplate.send(topic, jsonData);
+                    logger.info("Wysłano wiadomość do tematu {}: {}", topic, jsonData);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        executorService.shutdown();
+
+        try {
+            if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
+                logger.warn("Nie wszystkie zadania zakończyły się przed upływem czasu.");
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.error("Oczekiwanie na zakończenie wątków zostało przerwane.", e);
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
         }
 
         logger.info("Wysłano {} wiadomości do tematu {}", numberOfMessages, topic);
