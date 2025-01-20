@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,23 +32,22 @@ public class FotoradarDataService {
     @KafkaListener(topics = "fotoradar.data.provided", groupId = "fotoradar-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveFotoradarDataBatch(List<FotoradarDataProvidedDto> messages) {
         logger.info("Received a batch of {} messages", messages.size());
-        List<RadarData> validatedData = processMessages(messages);
+        messages.parallelStream().forEach(this::processAndSendFotoradarData);
+    }
 
-        if (!validatedData.isEmpty()) {
-            radarDataRepository.saveAll(validatedData);
-
-            validatedData.forEach(data -> {
-                FotoradarDataReceivedDto receivedDto = mapRadarDataToFotoradarDataReceivedDto(data);
-
-                try {
-                    String jsonData = serializeFotoradarDataReceivedDtoToJSON(receivedDto);
-                    kafkaTemplate.send(TOPIC_RECEIVED, jsonData);
-                    logger.info("Wysłano wiadomość do tematu {}: {}", TOPIC_RECEIVED, jsonData);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-
-            });
+    @Async("fotoradarDataExecutor")
+    public void processAndSendFotoradarData(FotoradarDataProvidedDto providedDto) {
+        RadarData radarData = processFotoradarData(providedDto);
+        if (radarData != null) {
+            radarDataRepository.save(radarData);
+            FotoradarDataReceivedDto receivedDto = mapRadarDataToFotoradarDataReceivedDto(radarData);
+            try {
+                String jsonData = serializeFotoradarDataReceivedDtoToJSON(receivedDto);
+                kafkaTemplate.send(TOPIC_RECEIVED, jsonData);
+                logger.info("Wysłano wiadomość do tematu {}: {}", TOPIC_RECEIVED, jsonData);
+            } catch (JsonProcessingException e) {
+                logger.error("Błąd podczas serializacji do JSON", e);
+            }
         }
     }
 
@@ -76,13 +76,6 @@ public class FotoradarDataService {
                     providedDto.radarId(), providedDto.eventTimestamp(), e.getClass().getName());
             return null;
         }
-    }
-
-    private List<RadarData> processMessages(List<FotoradarDataProvidedDto> messages){
-        return messages.stream()
-                .map(this::processFotoradarData)
-                .filter(java.util.Objects::nonNull)
-                .toList();
     }
 
     private FotoradarDataReceivedDto mapRadarDataToFotoradarDataReceivedDto(RadarData radarData){
