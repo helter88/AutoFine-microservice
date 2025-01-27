@@ -47,7 +47,7 @@ public class FotoradarDataServiceE2ETest {
     @Container
     @ServiceConnection
     static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("bitnami/kafka:latest")
+            DockerImageName.parse("confluentinc/cp-kafka:7.6.1")
                     .asCompatibleSubstituteFor("apache/kafka")
     );
 
