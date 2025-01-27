@@ -1,0 +1,42 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${TESTCONTAINERS_POSTGRES_HOST}:${TESTCONTAINERS_POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: ${TESTCONTAINERS_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: fotoradar-data-test-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      type: batch
+      missing-topics-fatal: false
+
+  main:
+    allow-bean-definition-overriding: true
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
