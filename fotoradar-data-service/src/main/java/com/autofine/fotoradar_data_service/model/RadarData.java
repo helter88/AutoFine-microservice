@@ -17,8 +17,8 @@ public class RadarData {
     private UUID id = UUID.randomUUID();
     private String radarExternalId;
     private LocalDateTime eventTimestamp;
-    private Integer speedLimit;
-    private Integer vehicleSpeed;
+    private int speedLimit;
+    private int vehicleSpeed;
     private String licensePlate;
     private String imageUrl;
 
@@ -49,11 +49,11 @@ public class RadarData {
         return eventTimestamp;
     }
 
-    public Integer getSpeedLimit() {
+    public int getSpeedLimit() {
         return speedLimit;
     }
 
-    public Integer getVehicleSpeed() {
+    public int getVehicleSpeed() {
         return vehicleSpeed;
     }
 

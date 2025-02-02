@@ -8,11 +8,12 @@ public record FotoradarDataProvidedDto(
         LocalDateTime eventTimestamp,
 
         int vehicleSpeed,
-
         String licensePlate,
 
         String imageUrl,
 
-        int speedLimit
+        int speedLimit,
+
+        Unit speedUnit
 ) {
 }

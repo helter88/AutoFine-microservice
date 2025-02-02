@@ -13,6 +13,7 @@ public record FotoradarDataProvidedDto(
 
         String imageUrl,
 
-        int speedLimit
+        int speedLimit,
+        String speedUnit
 ) {
 }
