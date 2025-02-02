@@ -48,6 +48,7 @@ The system follows this general data flow:
 *   Spring Boot
 *   PostgreSQL
 *   Apache Kafka
+*   Testcontainers
 
 ## Getting Started
 
