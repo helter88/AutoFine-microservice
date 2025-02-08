@@ -9,6 +9,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -77,6 +78,11 @@ public class FotoradarDataServiceE2ETest {
 
     private static final String INPUT_TOPIC = "fotoradar.data.provided";
     private static final String OUTPUT_TOPIC = "fotoradar.data.received";
+
+    @BeforeEach
+    void setUp() {
+        radarDataRepository.deleteAll();
+    }
 
     @Test
     void whenBatchMessagesSent_thenProcessedAndSentToOutputTopic() throws Exception {
