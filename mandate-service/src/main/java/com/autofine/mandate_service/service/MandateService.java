@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -27,16 +26,16 @@ public class MandateService {
     private static final String MANDATE = "fotoradar.data.received";
 
     private static final int POINTS_LIMIT_BEFORE_LICENSE_SUSPENSION = 24;
-    private String mandateCreatedTopic;
+    private static final String MANDATE_CREATED_TOPIC = "mandate.created";
 
     private final VehicleOwnerService vehicleOwnerService;
-
 
     public MandateService(MandateRepository mandateRepository, KafkaTemplate<String, Object> kafkaTemplate, VehicleOwnerService vehicleOwnerService) {
         this.mandateRepository = mandateRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.vehicleOwnerService = vehicleOwnerService;
     }
+
     @Transactional
     @Async("MandateDataExecutor")
     public void processFotoradarData(FotoradarDataReceivedDto data) {
@@ -102,6 +101,6 @@ public class MandateService {
                 mandate.getPoints(),
                 pointsLimitExceeded
         );
-        kafkaTemplate.send(mandateCreatedTopic, mandateCreated);
+        kafkaTemplate.send(MANDATE_CREATED_TOPIC, mandateCreated);
     }
 }

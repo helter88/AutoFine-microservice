@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
 public class Mandate {
 
     @Id
@@ -26,4 +25,76 @@ public class Mandate {
     @Column(updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getUserExternalId() {
+        return userExternalId;
+    }
+
+    public void setUserExternalId(UUID userExternalId) {
+        this.userExternalId = userExternalId;
+    }
+
+    public UUID getVehicleExternalId() {
+        return vehicleExternalId;
+    }
+
+    public void setVehicleExternalId(UUID vehicleExternalId) {
+        this.vehicleExternalId = vehicleExternalId;
+    }
+
+    public UUID getRadarDataId() {
+        return radarDataId;
+    }
+
+    public void setRadarDataId(UUID radarDataId) {
+        this.radarDataId = radarDataId;
+    }
+
+    public LocalDateTime getViolationTimestamp() {
+        return violationTimestamp;
+    }
+
+    public void setViolationTimestamp(LocalDateTime violationTimestamp) {
+        this.violationTimestamp = violationTimestamp;
+    }
+
+    public BigDecimal getFineAmount() {
+        return fineAmount;
+    }
+
+    public void setFineAmount(BigDecimal fineAmount) {
+        this.fineAmount = fineAmount;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

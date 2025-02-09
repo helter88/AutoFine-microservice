@@ -1,8 +1,10 @@
 package com.autofine.mandate_service.service;
 
+import org.springframework.stereotype.Service;
+
 import java.util.Random;
 import java.util.UUID;
-
+@Service
 public class VehicleOwnerService {
     public VehicleOwnerInfo getVehicleOwnerInfo(String licensePlate) {
         // Dummy implementation
