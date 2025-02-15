@@ -6,6 +6,9 @@ import com.autofine.mandate_service.model.entity.Mandate;
 import com.autofine.mandate_service.model.enums.PenaltyRate;
 import com.autofine.mandate_service.model.enums.PointRate;
 import com.autofine.mandate_service.repository.MandateRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,7 +35,7 @@ public class MandateServiceTest {
     private MandateRepository mandateRepository;
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Mock
     private VehicleOwnerService vehicleOwnerService;
@@ -42,7 +45,7 @@ public class MandateServiceTest {
     private static final String MANDATE_CREATED_TOPIC = "mandate.created";
 
     @Test
-    public void processFotoradarData_NoExcess_NoMandateCreated() {
+    public void processFotoradarData_NoExcess_NoMandateCreated() throws JsonProcessingException {
         FotoradarDataReceivedDto noExcessData = new FotoradarDataReceivedDto(
                 UUID.randomUUID(),
                 LocalDateTime.now(),
@@ -58,7 +61,7 @@ public class MandateServiceTest {
     }
 
     @Test
-    public void processFotoradarData_UserNotFound_NoMandateCreated() {
+    public void processFotoradarData_UserNotFound_NoMandateCreated() throws JsonProcessingException {
         FotoradarDataReceivedDto data = new FotoradarDataReceivedDto(
                 UUID.randomUUID(),
                 LocalDateTime.now(),
@@ -77,8 +80,11 @@ public class MandateServiceTest {
 
 
     @Test
-    public void processFotoradarData_ValidData_MandateCreatedAndEventPublished() {
+    public void processFotoradarData_ValidData_MandateCreatedAndEventPublished() throws JsonProcessingException {
         // Given
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
         UUID radarId = UUID.randomUUID();
         LocalDateTime eventTime = LocalDateTime.now();
         int speedLimit = 50;
@@ -102,16 +108,16 @@ public class MandateServiceTest {
         when(vehicleOwnerService.getVehicleOwnerInfo(licensePlate)).thenReturn(ownerInfo);
         when(mandateRepository.save(any(Mandate.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ArgumentCaptor<MandateCreatedDto> mandateCreatedCaptor = ArgumentCaptor.forClass(MandateCreatedDto.class);
+        ArgumentCaptor<String> mandateCreatedJsonCaptor = ArgumentCaptor.forClass(String.class);
 
         // When
         mandateService.processFotoradarData(data);
 
         // Then
         verify(mandateRepository).save(any(Mandate.class));
-        verify(kafkaTemplate).send(eq(MANDATE_CREATED_TOPIC), mandateCreatedCaptor.capture());
+        verify(kafkaTemplate).send(eq(MANDATE_CREATED_TOPIC), mandateCreatedJsonCaptor.capture());
 
-        MandateCreatedDto capturedEvent = mandateCreatedCaptor.getValue();
+        MandateCreatedDto capturedEvent = objectMapper.readValue(mandateCreatedJsonCaptor.getValue(), MandateCreatedDto.class);
         assertNotNull(capturedEvent);
         assertEquals(ownerId, capturedEvent.userExternalId());
         assertEquals(vehicleId, capturedEvent.vehicleExternalId());

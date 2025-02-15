@@ -7,6 +7,9 @@ import com.autofine.mandate_service.model.entity.Mandate;
 import com.autofine.mandate_service.model.enums.PenaltyRate;
 import com.autofine.mandate_service.model.enums.PointRate;
 import com.autofine.mandate_service.repository.MandateRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,7 +25,7 @@ import java.util.UUID;
 public class MandateService {
     private static final Logger logger = LoggerFactory.getLogger(MandateService.class);
     private final MandateRepository mandateRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private static final String MANDATE = "fotoradar.data.received";
 
     private static final int POINTS_LIMIT_BEFORE_LICENSE_SUSPENSION = 24;
@@ -30,15 +33,14 @@ public class MandateService {
 
     private final VehicleOwnerService vehicleOwnerService;
 
-    public MandateService(MandateRepository mandateRepository, KafkaTemplate<String, Object> kafkaTemplate, VehicleOwnerService vehicleOwnerService) {
+    public MandateService(MandateRepository mandateRepository, KafkaTemplate<String, String> kafkaTemplate, VehicleOwnerService vehicleOwnerService) {
         this.mandateRepository = mandateRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.vehicleOwnerService = vehicleOwnerService;
     }
-
     @Transactional
-    @Async("MandateDataExecutor")
-    public void processFotoradarData(FotoradarDataReceivedDto data) {
+    @Async("mandateDataExecutor")
+    public void processFotoradarData(FotoradarDataReceivedDto data) throws JsonProcessingException {
 
             int speedExcess = data.vehicleSpeed() - data.speedLimit();
             if (speedExcess < 0) {
@@ -91,7 +93,7 @@ public class MandateService {
         return mandateRepository.save(mandate);
     }
 
-    private void publishMandateCreatedEvent(Mandate mandate, UUID ownerId, UUID vehicleId, boolean pointsLimitExceeded) {
+    private void publishMandateCreatedEvent(Mandate mandate, UUID ownerId, UUID vehicleId, boolean pointsLimitExceeded) throws JsonProcessingException {
         MandateCreatedDto mandateCreated = new MandateCreatedDto(
                 mandate.getId(),
                 ownerId,
@@ -101,6 +103,12 @@ public class MandateService {
                 mandate.getPoints(),
                 pointsLimitExceeded
         );
-        kafkaTemplate.send(MANDATE_CREATED_TOPIC, mandateCreated);
+        kafkaTemplate.send(MANDATE_CREATED_TOPIC, serializeMandateCreatedDtoToJSON(mandateCreated));
+    }
+
+    private String serializeMandateCreatedDtoToJSON(MandateCreatedDto mandateCreated) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper.writeValueAsString(mandateCreated);
     }
 }
