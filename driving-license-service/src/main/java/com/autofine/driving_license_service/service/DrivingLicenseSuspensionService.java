@@ -12,12 +12,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Service
 public class DrivingLicenseSuspensionService {
 
     private static final Logger logger = LoggerFactory.getLogger(DrivingLicenseSuspensionService.class);
