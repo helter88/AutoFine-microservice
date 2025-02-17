@@ -1,4 +1,4 @@
-package om.autofine.driving_license_service;
+package com.autofine.driving_license_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

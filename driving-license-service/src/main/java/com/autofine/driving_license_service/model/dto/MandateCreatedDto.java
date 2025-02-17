@@ -1,4 +1,4 @@
-package com.autofine.mandate_service.model.dto;
+package com.autofine.driving_license_service.model.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

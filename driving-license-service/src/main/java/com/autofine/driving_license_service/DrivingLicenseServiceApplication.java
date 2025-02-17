@@ -1,4 +1,4 @@
-package om.autofine.driving_license_service;
+package com.autofine.driving_license_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

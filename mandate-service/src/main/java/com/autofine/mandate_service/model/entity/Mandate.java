@@ -19,7 +19,7 @@ public class Mandate {
     private UUID radarDataId;
     private LocalDateTime violationTimestamp;
     private BigDecimal fineAmount;
-    private Integer points;
+    private int points;
     private String status;
     @Column(updatable = false)
     @CreatedDate
