@@ -22,6 +22,9 @@ public class VehicleOwner {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    public VehicleOwner() {
+    }
+
     public VehicleOwner(UUID userId, String licensePlate, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.userId = userId;
         this.licensePlate = licensePlate;

@@ -23,6 +23,9 @@ public class DrivingLicenseEvent {
 
     private String reason;
 
+    public DrivingLicenseEvent() {
+    }
+
     public DrivingLicenseEvent(UUID userId, LicenseEventType eventType, LocalDateTime eventDate, String reason) {
         this.userId = userId;
         this.eventType = eventType;

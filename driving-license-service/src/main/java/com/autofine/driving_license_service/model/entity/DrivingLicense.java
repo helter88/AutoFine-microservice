@@ -31,12 +31,16 @@ public class DrivingLicense {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    public DrivingLicense() {
+    }
+
     public DrivingLicense(UUID userId, LicenseStatus status, LocalDate suspensionStartDate, LocalDate suspensionEndDate) {
         this.userId = userId;
         this.status = status;
         this.suspensionStartDate = suspensionStartDate;
         this.suspensionEndDate = suspensionEndDate;
     }
+
 
     public UUID getUserId() {
         return userId;
