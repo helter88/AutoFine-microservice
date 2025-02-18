@@ -18,7 +18,7 @@ public class MandateCreatedConsumer {
     public MandateCreatedConsumer(DrivingLicenseSuspensionService drivingLicenseSuspensionService) {
         this.drivingLicenseSuspensionService = drivingLicenseSuspensionService;
     }
-    @KafkaListener(topics = "fotoradar.data.received", groupId = "driving-licence-data-group", containerFactory = "batchKafkaListenerContainerFactory")
+    @KafkaListener(topics = "mandate.created", groupId = "driving-licence-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveMandateDataBatch(List<MandateCreatedDto> messages) {
         logger.info("Received a batch of {} messages", messages.size());
         messages.parallelStream().forEach(data -> {
