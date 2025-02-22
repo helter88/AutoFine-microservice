@@ -39,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Testcontainers
@@ -122,5 +124,29 @@ public class DrivingLicenseSuspensionE2ETest {
                     assertThat(mandateCreatedDto.isSuspended()).isEqualTo(true);
 
                 });
+    }
+
+    @Test
+    void testParallelProcessingPerformance() throws Exception {
+        // Given
+        int messageCount = 100;
+
+        // When
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < messageCount; i++) {
+            UUID userId = UUID.randomUUID();
+            DrivingLicense divingLicense =  new DrivingLicense(userId, LicenseStatus.VALID, null, null);
+            drivingLicenseRepository.save(divingLicense);
+            MandateCreatedDto mandate = new MandateCreatedDto(
+                    UUID.randomUUID(), userId, BigDecimal.valueOf(500), LocalDateTime.now(), UUID.randomUUID(), 15, true
+            );
+            // When
+            mandateDataKafkaTemplate.send(INPUT_TOPIC, mandate);
+        }
+
+        // Then
+        await().until(() -> drivingLicenseRepository.count() == messageCount);
+        long duration = System.currentTimeMillis() - startTime;
+        System.out.println("Processing time for " + messageCount + " messages: " + duration + " ms");
     }
 }
