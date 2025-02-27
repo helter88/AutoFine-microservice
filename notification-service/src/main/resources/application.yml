@@ -1,3 +1,36 @@
 spring:
   application:
     name: notification-service
+datasource:
+  url: jdbc:postgresql://db_notification:5432/notification_db
+  username: user_notification
+  password: password_notification
+  driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: kafka:9093
+    consumer:
+      group-id: notification-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+  mail:
+    host: "smtp.example.com" # toDO Zastąp rzeczywistym adresem serwera SMTP
+    port: 587 # toDo Domyślny port TLS
+    username: "your_email@example.com" # toDO Zastąp swoim adresem e-mail
+    password: "your_password" # toDo Zastąp swoim hasłem
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8083

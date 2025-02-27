@@ -1,4 +1,4 @@
-package om.autofine.notification_service;
+package com.autofine.notification_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
