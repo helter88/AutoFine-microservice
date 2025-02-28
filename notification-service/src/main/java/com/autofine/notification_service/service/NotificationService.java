@@ -13,11 +13,13 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+@Service
 public class NotificationService {
     private final UserNotificationRepository userNotificationRepository;
     private final NotificationHistoryRepository historyRepository;
@@ -29,14 +31,14 @@ public class NotificationService {
         this.mailSender = mailSender;
     }
 
-    @Async
+    @Async("notificationExecutor")
     public void processMandateCreated(MandateCreatedEvent event) {
         UserNotification userNotification = userNotificationRepository.findByUserId(event.userExternalId())
                 .orElseThrow(() -> new RuntimeException("User notification data not found"));
 
         String subject = "New traffic fine issued";
         String content = String.format(
-                "Dear User,\nA new fine has been issued in the amount of %s PLN.\nPoints: %s\nDate: %s",
+                "Dear User,\nA new fine has been issued in the amount of %.2f PLN.\nPoints: %s\nDate: %s",
                 event.fineAmount(),
                 event.points(),
                 event.issueDate()
@@ -75,6 +77,7 @@ public class NotificationService {
         }
     }
 
+    @Async("notificationExecutor")
     public void processLicenseSuspended(DrivingLicenseSuspendedDto event) {
         UserNotification userNotification = userNotificationRepository.findByUserId(event.userExternalId())
                 .orElseThrow(() -> new RuntimeException("User notification data not found"));
@@ -94,7 +97,7 @@ public class NotificationService {
                 null
         );
     }
-
+    @Async("notificationExecutor")
     public void processLicenseReinstated(DrivingLicenseReinstatedDto event) {
         UserNotification userNotification = userNotificationRepository.findByUserId(event.userExternalId())
                 .orElseThrow(() -> new RuntimeException("User notification data not found"));
