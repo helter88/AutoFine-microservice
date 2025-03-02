@@ -1,11 +1,11 @@
 spring:
   application:
     name: notification-service
-datasource:
-  url: jdbc:postgresql://db_notification:5432/notification_db
-  username: user_notification
-  password: password_notification
-  driver-class-name: org.postgresql.Driver
+  datasource:
+    url: jdbc:postgresql://db_notification:5432/notification_db
+    username: user_notification
+    password: password_notification
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
