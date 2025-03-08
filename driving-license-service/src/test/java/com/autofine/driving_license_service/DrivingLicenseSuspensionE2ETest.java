@@ -20,8 +20,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -39,8 +37,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Testcontainers
@@ -49,7 +45,6 @@ import static org.mockito.Mockito.when;
                 "spring.kafka.consumer.auto-offset-reset=earliest",
         }
 )
-@DirtiesContext
 @Import(KafkaTestConfig.class)
 public class DrivingLicenseSuspensionE2ETest {
     @Container
@@ -130,6 +125,7 @@ public class DrivingLicenseSuspensionE2ETest {
     void testParallelProcessingPerformance() throws Exception {
         // Given
         int messageCount = 100;
+        long expectedMessageCount = messageCount + drivingLicenseRepository.count();
 
         // When
         long startTime = System.currentTimeMillis();
@@ -145,7 +141,7 @@ public class DrivingLicenseSuspensionE2ETest {
         }
 
         // Then
-        await().until(() -> drivingLicenseRepository.count() == messageCount);
+        await().until(() -> drivingLicenseRepository.count() == expectedMessageCount);
         long duration = System.currentTimeMillis() - startTime;
         System.out.println("Processing time for " + messageCount + " messages: " + duration + " ms");
     }
