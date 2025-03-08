@@ -49,7 +49,7 @@ public class DrivingLicenseSuspensionService {
         drivingLicenseProducer.sendLicenseSuspendedEvent(userDrivingLicence.getUserId());
     }
     @Transactional
-    private void changeStatusToSuspended(DrivingLicense userDrivingLicence, int points) {
+    private void changeStatusToSuspended(DrivingLicense userDrivingLicence, int points) { // transakcyjny private - u mnie intellij nawet to podkreśla
         LocalDate now = LocalDate.now();
         userDrivingLicence.setStatus(LicenseStatus.SUSPENDED);
         userDrivingLicence.setSuspensionStartDate(now);
@@ -58,7 +58,7 @@ public class DrivingLicenseSuspensionService {
         drivingLicenseRepository.save(userDrivingLicence);
     }
     @Transactional
-    private void saveEvent( UUID userId){
+    private void saveEvent( UUID userId){ // j/w - bardzo ważne
         DrivingLicenseEvent drivingLicenseEvent = new DrivingLicenseEvent(
               userId,
                 LicenseEventType.SUSPENDED,

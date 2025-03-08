@@ -20,6 +20,7 @@ public class RadarDataConsumer {
         this.mandateService = mandateService;
     }
 
+    // tu już mamy wydzielonego listenera do osobnej klasy i przetwarzanie jest robione w serwisie - fajnie
     @KafkaListener(topics = "fotoradar.data.received", groupId = "mandate-data-group", containerFactory = "batchKafkaListenerContainerFactory")
     public void receiveFotoradarDataBatch(List<FotoradarDataReceivedDto> messages) {
         logger.info("Received a batch of {} messages", messages.size());

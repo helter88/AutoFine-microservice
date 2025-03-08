@@ -64,7 +64,7 @@ public class MandateService {
             publishMandateCreatedEvent(mandate, ownerInfo.ownerId(), ownerInfo.vehicleId(), pointsLimitExceeded);
     }
 
-    private BigDecimal calculateFineAmount(int speedExcess) {
+    private BigDecimal calculateFineAmount(int speedExcess) { // static, mógłby byc nawet częścią PenaltyRate
         return Arrays.stream(PenaltyRate.values())
                 .filter(rate -> rate.getMinSpeed() <= speedExcess && rate.getMaxSpeed() >= speedExcess)
                 .findFirst()
@@ -72,7 +72,7 @@ public class MandateService {
                 .orElse(BigDecimal.ZERO);
     }
 
-    private int calculatePoints(int speedExcess) {
+    private int calculatePoints(int speedExcess) { // j/w - organizacja kodu do dopracowania - ale wiem, że w małym projekcie ciężko się popisać :D
         return Arrays.stream(PointRate.values())
                 .filter(rate -> rate.getMinSpeed() <= speedExcess && rate.getMaxSpeed() >= speedExcess)
                 .findFirst()
@@ -107,7 +107,7 @@ public class MandateService {
     }
 
     private String serializeMandateCreatedDtoToJSON(MandateCreatedDto mandateCreated) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper(); // lubisz to tworzenie objectmapperów... ;D
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.writeValueAsString(mandateCreated);
     }

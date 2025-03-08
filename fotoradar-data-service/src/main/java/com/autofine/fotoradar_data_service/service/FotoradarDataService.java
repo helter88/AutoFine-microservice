@@ -90,13 +90,13 @@ public class FotoradarDataService {
     }
 
     private String serializeFotoradarDataReceivedDtoToJSON(FotoradarDataReceivedDto receivedDto) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper(); // niepotrzebnie za każdym razem tworzymy - można w ogóle stworzyć osobną klasę Serializer czy coś takiego - to jest mały serwis, ale trochę brakuje tworzenia dedykowanych klas do konkretnych zadań, helperów, utility, wszystko jest w jednym serwisie
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.writeValueAsString(receivedDto);
     }
 
     private int calculateSpeedKMH(int speed , String speedUnit){
-        return speedUnit.equalsIgnoreCase("KMH")  ? speed : changeMPSToKMH(speed);
+        return speedUnit.equalsIgnoreCase("KMH")  ? speed : changeMPSToKMH(speed); // co prawda mamy wyżej dużego try catch ale możnaby tutaj dedykowanym wyjątkiem obslużyć nieznane jednostki
     }
 
     private int changeMPSToKMH(int speedMPS){

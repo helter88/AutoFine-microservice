@@ -47,7 +47,9 @@ public class NotificationService {
         sendNotification(userNotification, subject, content, NotificationType.MANDATE_CREATED, event.mandateId());
     }
 
-
+    // drobnostka, ale warto metody układać w kolejności czytania
+    // chodzi o to że niżej masz metody który korzystają z tej i lepiej by była ona pod nimi
+    // reguła step down (Uncle Bob)
     private void sendNotification(UserNotification userNotification,
                                   String subject,
                                   String content,

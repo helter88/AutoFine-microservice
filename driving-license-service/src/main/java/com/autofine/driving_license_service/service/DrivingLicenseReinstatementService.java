@@ -32,7 +32,7 @@ public class DrivingLicenseReinstatementService {
         this.drivingLicenseProducer = drivingLicenseProducer;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") // Runs daily at midnight
+    @Scheduled(cron = "0 0 0 * * ?") // Runs daily at midnight  // podobnie jak robisz pakiet kafka, tak na crony można zrobić osobny, z minimalistyczną metodą wołającą tę
     public void checkForLicenseReinstatement() {
         List<DrivingLicense> licensesToReinstate = drivingLicenseRepository
                 .findAllByStatusAndSuspensionEndDate(LicenseStatus.SUSPENDED, LocalDate.now());
