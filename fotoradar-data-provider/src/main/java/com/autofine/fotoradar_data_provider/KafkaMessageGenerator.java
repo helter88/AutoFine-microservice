@@ -24,14 +24,18 @@ public class KafkaMessageGenerator implements CommandLineRunner {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
+    private final ObjectMapper objectMapper;
+
     public KafkaMessageGenerator(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
     public void run(String... args) throws Exception {
         String topic = "fotoradar.data.provided";
-        int numberOfMessages = 1000; // Zdefiniuj liczbę wiadomości do wysłania // TODO dawaj więcej, niech się trochę procesor zmęczy :P (i żebyśmy zobaczyli efekty zrównoleglenia) + produkcję też możesz zrównoleglić
+        int numberOfMessages = 1000;
         int numberOfThreads = 10;
 
         List<Integer> possibleSpeedLimits = Arrays.asList(40, 50, 70, 90, 120);
@@ -87,7 +91,7 @@ public class KafkaMessageGenerator implements CommandLineRunner {
         Random random = new Random();
         String radarId = "RADAR_" + random.nextInt(10);
         LocalDateTime eventTimestamp = LocalDateTime.now().minusMinutes(random.nextInt(60)); // Losowe zdarzenie w ciągu ostatniej godziny
-        int vehicleSpeed = 50 + random.nextInt(150); // Prędkość między 50 a 200 km/h // a nie między 50 a 199? :P
+        int vehicleSpeed = 50 + random.nextInt(150); // Prędkość między 50 a 199 km/h
         String licensePlate = generateRandomLicensePlate();
         String imageUrl = "http://example.com/image/" + UUID.randomUUID() + ".jpg";
         int speedLimit = generatePossibleSpeedLimit(possibleSpeedLimits, random);
@@ -103,8 +107,6 @@ public class KafkaMessageGenerator implements CommandLineRunner {
     }
 
     private String serializeDtoData(FotoradarDataProvidedDto data) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper(); // szkoda tworzyć za każdym razem... miejmy na uwadze zawsze wydajność - koszt tworzenia obiektów może byc wysoki i wpływać negatywnie
-        objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.writeValueAsString(data);
     }
 }

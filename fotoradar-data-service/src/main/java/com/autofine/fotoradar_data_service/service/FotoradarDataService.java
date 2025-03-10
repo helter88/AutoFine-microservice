@@ -22,10 +22,13 @@ public class FotoradarDataService {
     private final RadarDataRepository radarDataRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private static final String TOPIC_RECEIVED = "fotoradar.data.received";
+    private final ObjectMapper objectMapper;
 
     public FotoradarDataService(RadarDataRepository radarDataRepository, KafkaTemplate<String, String> kafkaTemplate) {
         this.radarDataRepository = radarDataRepository;
         this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
 
@@ -55,7 +58,6 @@ public class FotoradarDataService {
         try {
 
             if (checkIfDtoContainsNullValues(providedDto)) {
-                // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację nie wysyłaj info o licensePlate) / slf4j
                 logger.warn("Provided DTO contains null or invalid values: radarId={}, eventTimestamp={}, licensePlate=ANONYMIZED",
                         providedDto.radarId(), providedDto.eventTimestamp());
                 return null;
@@ -71,7 +73,6 @@ public class FotoradarDataService {
             );
 
         } catch (Exception e) {
-            // TODO minimum to jakiś komunikat w logach (uwzględnić anonimizację nie wysyłaj info o licensePlate ) / slf4j
             logger.error("An error occurred while processing radar data: radarId={}, eventTimestamp={}, licensePlate=ANONYMIZED. Exception type: {}",
                     providedDto.radarId(), providedDto.eventTimestamp(), e.getClass().getName());
             return null;
@@ -90,13 +91,11 @@ public class FotoradarDataService {
     }
 
     private String serializeFotoradarDataReceivedDtoToJSON(FotoradarDataReceivedDto receivedDto) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper(); // niepotrzebnie za każdym razem tworzymy - można w ogóle stworzyć osobną klasę Serializer czy coś takiego - to jest mały serwis, ale trochę brakuje tworzenia dedykowanych klas do konkretnych zadań, helperów, utility, wszystko jest w jednym serwisie
-        objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.writeValueAsString(receivedDto);
     }
 
     private int calculateSpeedKMH(int speed , String speedUnit){
-        return speedUnit.equalsIgnoreCase("KMH")  ? speed : changeMPSToKMH(speed); // co prawda mamy wyżej dużego try catch ale możnaby tutaj dedykowanym wyjątkiem obslużyć nieznane jednostki
+        return speedUnit.equalsIgnoreCase("KMH")  ? speed : changeMPSToKMH(speed);
     }
 
     private int changeMPSToKMH(int speedMPS){

@@ -36,6 +36,7 @@ public class DrivingLicenseSuspensionService {
     }
 
     @Async("drivingLicenseDataExecutor")
+    @Transactional
     public void processMandateData(MandateCreatedDto data) throws JsonProcessingException {
         if(!data.pointsLimitExceeded()) return;
         DrivingLicense userDrivingLicence = drivingLicenseRepository.findById(data.userExternalId()).orElseGet(() ->{
@@ -48,8 +49,8 @@ public class DrivingLicenseSuspensionService {
         saveEvent(userDrivingLicence.getUserId());
         drivingLicenseProducer.sendLicenseSuspendedEvent(userDrivingLicence.getUserId());
     }
-    @Transactional
-    private void changeStatusToSuspended(DrivingLicense userDrivingLicence, int points) { // transakcyjny private - u mnie intellij nawet to podkreśla
+
+    private void changeStatusToSuspended(DrivingLicense userDrivingLicence, int points) {
         LocalDate now = LocalDate.now();
         userDrivingLicence.setStatus(LicenseStatus.SUSPENDED);
         userDrivingLicence.setSuspensionStartDate(now);
@@ -57,8 +58,8 @@ public class DrivingLicenseSuspensionService {
         userDrivingLicence.setPoints(userDrivingLicence.getPoints() + points);
         drivingLicenseRepository.save(userDrivingLicence);
     }
-    @Transactional
-    private void saveEvent( UUID userId){ // j/w - bardzo ważne
+
+    private void saveEvent( UUID userId){
         DrivingLicenseEvent drivingLicenseEvent = new DrivingLicenseEvent(
               userId,
                 LicenseEventType.SUSPENDED,

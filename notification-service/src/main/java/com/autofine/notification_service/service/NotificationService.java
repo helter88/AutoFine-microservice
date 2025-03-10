@@ -47,38 +47,6 @@ public class NotificationService {
         sendNotification(userNotification, subject, content, NotificationType.MANDATE_CREATED, event.mandateId());
     }
 
-    // drobnostka, ale warto metody układać w kolejności czytania
-    // chodzi o to że niżej masz metody który korzystają z tej i lepiej by była ona pod nimi
-    // reguła step down (Uncle Bob)
-    private void sendNotification(UserNotification userNotification,
-                                  String subject,
-                                  String content,
-                                  NotificationType type,
-                                  UUID mandateId) {
-        NotificationHistory history = new NotificationHistory();
-        history.setUserId(userNotification.getUserId());
-        history.setMandateId(mandateId);
-        history.setNotificationType(type);
-        history.setSentAt(LocalDateTime.now());
-        history.setStatus(NotificationStatus.PENDING);
-        history.setContentMessage(content);
-
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(userNotification.getEmail());
-            message.setSubject(subject);
-            message.setText(content);
-            mailSender.send(message);
-
-            history.setStatus(NotificationStatus.SENT);
-        } catch (MailException e) {
-            history.setStatus(NotificationStatus.FAILED);
-            history.setErrorMessage(e.getMessage());
-        } finally {
-            historyRepository.save(history);
-        }
-    }
-
     @Async("notificationExecutor")
     public void processLicenseSuspended(DrivingLicenseSuspendedDto event) {
         UserNotification userNotification = userNotificationRepository.findByUserId(event.userExternalId())
@@ -118,5 +86,34 @@ public class NotificationService {
                 NotificationType.LICENSE_REINSTATED,
                 null
         );
+    }
+
+    private void sendNotification(UserNotification userNotification,
+                                  String subject,
+                                  String content,
+                                  NotificationType type,
+                                  UUID mandateId) {
+        NotificationHistory history = new NotificationHistory();
+        history.setUserId(userNotification.getUserId());
+        history.setMandateId(mandateId);
+        history.setNotificationType(type);
+        history.setSentAt(LocalDateTime.now());
+        history.setStatus(NotificationStatus.PENDING);
+        history.setContentMessage(content);
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(userNotification.getEmail());
+            message.setSubject(subject);
+            message.setText(content);
+            mailSender.send(message);
+
+            history.setStatus(NotificationStatus.SENT);
+        } catch (MailException e) {
+            history.setStatus(NotificationStatus.FAILED);
+            history.setErrorMessage(e.getMessage());
+        } finally {
+            historyRepository.save(history);
+        }
     }
 }

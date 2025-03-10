@@ -32,11 +32,14 @@ public class MandateService {
     private static final String MANDATE_CREATED_TOPIC = "mandate.created";
 
     private final VehicleOwnerService vehicleOwnerService;
+    private final ObjectMapper objectMapper;
 
     public MandateService(MandateRepository mandateRepository, KafkaTemplate<String, String> kafkaTemplate, VehicleOwnerService vehicleOwnerService) {
         this.mandateRepository = mandateRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.vehicleOwnerService = vehicleOwnerService;
+        this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
     @Transactional
     @Async("mandateDataExecutor")
@@ -54,30 +57,14 @@ public class MandateService {
                 return;
             }
 
-            BigDecimal fineAmount = calculateFineAmount(speedExcess);
-            int points = calculatePoints(speedExcess);
+            BigDecimal fineAmount = PenaltyRate.calculateFineAmount(speedExcess);
+            int points = PointRate.calculatePoints(speedExcess);
 
             Mandate mandate = createMandate(data, fineAmount, points, ownerInfo.ownerId(), ownerInfo.vehicleId());
 
             boolean pointsLimitExceeded = ownerInfo.pointsNumber() + points >= POINTS_LIMIT_BEFORE_LICENSE_SUSPENSION;
 
             publishMandateCreatedEvent(mandate, ownerInfo.ownerId(), ownerInfo.vehicleId(), pointsLimitExceeded);
-    }
-
-    private BigDecimal calculateFineAmount(int speedExcess) { // static, mógłby byc nawet częścią PenaltyRate
-        return Arrays.stream(PenaltyRate.values())
-                .filter(rate -> rate.getMinSpeed() <= speedExcess && rate.getMaxSpeed() >= speedExcess)
-                .findFirst()
-                .map(PenaltyRate::getAmount)
-                .orElse(BigDecimal.ZERO);
-    }
-
-    private int calculatePoints(int speedExcess) { // j/w - organizacja kodu do dopracowania - ale wiem, że w małym projekcie ciężko się popisać :D
-        return Arrays.stream(PointRate.values())
-                .filter(rate -> rate.getMinSpeed() <= speedExcess && rate.getMaxSpeed() >= speedExcess)
-                .findFirst()
-                .map(PointRate::getPoints)
-                .orElse(0);
     }
 
     private Mandate createMandate(FotoradarDataReceivedDto data, BigDecimal fineAmount, int points, UUID ownerId, UUID vehicleId) {
@@ -88,7 +75,7 @@ public class MandateService {
         mandate.setViolationTimestamp(data.eventTimestamp());
         mandate.setFineAmount(fineAmount);
         mandate.setPoints(points);
-        mandate.setStatus("NEW"); // Default status
+        mandate.setStatus("NEW");
 
         return mandateRepository.save(mandate);
     }
@@ -107,8 +94,6 @@ public class MandateService {
     }
 
     private String serializeMandateCreatedDtoToJSON(MandateCreatedDto mandateCreated) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper(); // lubisz to tworzenie objectmapperów... ;D
-        objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.writeValueAsString(mandateCreated);
     }
 }

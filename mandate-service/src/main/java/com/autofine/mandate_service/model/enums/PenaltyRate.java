@@ -1,6 +1,7 @@
 package com.autofine.mandate_service.model.enums;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 public enum PenaltyRate {
 
@@ -31,5 +32,13 @@ public enum PenaltyRate {
 
     public int getMaxSpeed() {
         return maxSpeed;
+    }
+
+    public static BigDecimal calculateFineAmount(int speedExcess) {
+        return Arrays.stream(PenaltyRate.values())
+                .filter(rate -> rate.getMinSpeed() <= speedExcess && rate.getMaxSpeed() >= speedExcess)
+                .findFirst()
+                .map(PenaltyRate::getAmount)
+                .orElse(BigDecimal.ZERO);
     }
 }

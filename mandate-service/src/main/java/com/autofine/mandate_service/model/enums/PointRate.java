@@ -1,5 +1,7 @@
 package com.autofine.mandate_service.model.enums;
 
+import java.util.Arrays;
+
 public enum PointRate {
     UP_TO_10(1, 0, 10),
     FROM_11_TO_15(2, 11, 15),
@@ -28,5 +30,13 @@ public enum PointRate {
 
     public int getMaxSpeed() {
         return maxSpeed;
+    }
+
+    public static int calculatePoints(int speedExcess) {
+        return Arrays.stream(PointRate.values())
+                .filter(rate -> rate.getMinSpeed() <= speedExcess && rate.getMaxSpeed() >= speedExcess)
+                .findFirst()
+                .map(PointRate::getPoints)
+                .orElse(0);
     }
 }

@@ -17,7 +17,7 @@ public class VehicleOwnerController {
     }
 
     @GetMapping("/{licensePlate}")
-    public VehicleOwnerInfoDto getProjects(String licensePlate) { // "projects"? :P
+    public VehicleOwnerInfoDto getOwnerInfo(String licensePlate) {
         return vehicleOwnerInfoService.getOwnerInfo(licensePlate);
     }
 }
